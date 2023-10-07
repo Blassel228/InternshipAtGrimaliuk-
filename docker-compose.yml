@@ -1,0 +1,30 @@
+version: '3.11'
+services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - '5432:5432'
+    volumes:
+      - db:/var/lib/postgresql/data
+
+  cache:
+    image: redis
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+    environment:
+      - REDIS_USER=redis
+      - REDIS_PASSWORD=redis
+    volumes:
+      - cache:/data
+
+volumes:
+  db:
+    driver: local
+  cache:
+    driver: local

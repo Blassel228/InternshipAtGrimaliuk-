@@ -3,3 +3,7 @@ uvicorn
 docker
 pydantic_settings
 pydantic
+databases
+redis
+asyncio_redis
+python-dotenv
