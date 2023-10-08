@@ -1,5 +1,9 @@
 fastapi
 uvicorn
-docker
+docker  # TODO: remove this, yes im lazy bone
 pydantic_settings
 pydantic
+databases
+redis
+asyncio_redis
+python-dotenv
