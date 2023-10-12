@@ -1,5 +1,3 @@
-# TODO: rename file into base.py
-
 from databases import Database
 import asyncio_redis
 from config import settings
