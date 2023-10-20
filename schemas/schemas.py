@@ -7,19 +7,15 @@ class User(BaseModel):
     username: str
     password: str
     mail: EmailStr
-    registered_date: datetime
+    registered_date: datetime.datetime
     role: int
+    hashed_password: str
 
 class UserSignIn(BaseModel):
     username: str
     password: str
 
 class UserSignUp(BaseModel):
-    username: str
-    password: str
-    mail: EmailStr
-
-class UserUpdate(BaseModel):
     username: str
     password: str
     mail: EmailStr

@@ -1,4 +1,4 @@
-fastapi
+fastapi==0.104.0
 uvicorn
 pydantic_settings
 pydantic
@@ -9,3 +9,4 @@ python-dotenv
 alembic
 SQLAlchemy
 psycopg2
+fastapi-pagination
