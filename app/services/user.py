@@ -1,6 +1,6 @@
-from db.models.models import UserModel
+from app.db.models.models import UserModel
 from sqlalchemy.orm import Session
-from schemas.schemas import User, UserListResponse
+from app.schemas.schemas import User
 from fastapi import HTTPException
 from passlib.context import CryptContext
 import logging
@@ -8,7 +8,7 @@ import logging
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def get_all_users(db: Session):
-    return db.query(UserListResponse).all()
+    return db.query(UserModel).all()
 
 def get_user(id_: int, db: Session):
     return db.query(UserModel).filter(UserModel.id==id_).first()

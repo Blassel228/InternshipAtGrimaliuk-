@@ -10,3 +10,6 @@ alembic
 SQLAlchemy
 psycopg2
 fastapi-pagination
+pydantic[email]
+passlib
+bcrypt
