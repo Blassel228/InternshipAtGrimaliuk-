@@ -13,3 +13,4 @@ fastapi-pagination
 pydantic[email]
 passlib
 bcrypt
+fastapi_users

@@ -1,62 +1,22 @@
-from app.db.models.models import UserModel
-from sqlalchemy.orm import Session
+from app.repositories.repository import AbstractRepository
 from app.schemas.schemas import User
-from fastapi import HTTPException
-from passlib.context import CryptContext
-import logging
+from sqlalchemy.orm import Session
+from app.repositories.repository import user_repo
+class UserService:
+    def get_all(self, db: Session):
+        return user_repo.get_all(db=db)
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    def get_one(self, id_: int, db: Session):
+        return user_repo.get_one(id_=id_, db=db)
 
-def get_all_users(db: Session):
-    return db.query(UserModel).all()
+    def add_user(self, data: User, db:Session):
+        data = data.model_dump()
+        return user_repo.add(data=data, db=db)
 
-def get_user(id_: int, db: Session):
-    return db.query(UserModel).filter(UserModel.id==id_).first()
+    def update_user(self, id_: int, data: User, db: Session):
+        data = data.model_dump()
+        return user_repo.update(id_=id_, data=data, db=db)
 
-def create_user(data: User, db: Session):
-    #explanation for you from the future: we pass a password to our API it takes it and transforms to hash then it saves the password to the database
-    user = UserModel(id=data.id, username=data.username, mail=data.mail, role=data.role, hashed_password=pwd_context.hash(data.password))
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    try:
-        db.add(user)
-        db.commit()
-        db.refresh(user)
-    except Exception as ex:
-        logging.error("User was not created")
-        return ex
-    return user
-
-def update_user(data: User, id_: int, db: Session):
-    try:
-        user = db.query(UserModel).filter(UserModel.id==id_).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-        user.id = data.id
-        user.username = data.username
-        user.password = data.password
-        user.hashed_password = pwd_context.hash(data.password)
-        user.mail = data.mail
-
-        db.commit()
-        db.refresh(user)
-    except Exception as ex:
-        logging.error("User was not updated")
-        return ex
-
-    logging.info("User was updated")
-    return user
-
-def delete_user(id_: int, db: Session):
-    try:
-        user = db.query(UserModel).filter(UserModel.id==id_).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-        db.delete(user)
-        db.commit()
-        db.refresh(user)
-    except Exception as ex:
-        logging.error("User could not be deleted")
-        return ex
-
-    return f"{user} was deleted"
+    def delete_user(self, id_: int, db: Session):
+        return user_repo.delete(id_=id_, db=db)
+user_service = UserService()
