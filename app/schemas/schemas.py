@@ -22,3 +22,11 @@ class UserSignUp(BaseModel):
 
 class UserListResponse(BaseModel):
     users: List[User]
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    id: int
+    username: str
