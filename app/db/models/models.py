@@ -11,8 +11,8 @@ session = sessionmaker(engine)
 class UserModel(Base):
     __tablename__ = "user"
     id = Column(Integer, primary_key=True)
-    username = Column(String, nullable=False)
-    mail = Column(String, nullable=False)
+    username = Column(String, nullable=False, unique=True)
+    mail = Column(String, nullable=False, unique=True)
     registration_date = Column(String, default=datetime.datetime.now())
     role = Column(Integer, nullable=False)
     hashed_password = Column(String, nullable=False)
