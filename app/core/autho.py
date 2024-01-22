@@ -4,13 +4,13 @@ from typing import Annotated
 from fastapi import  Depends, status, HTTPException
 from passlib.context import CryptContext
 from app.db.models.models import get_db, UserModel
-from app.schemas.schemas import TokenData
 from jose import jwt, JWTError
 from config import settings
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/user/token/")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def login_get_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Session = Depends(get_db)):
@@ -23,14 +23,14 @@ def login_get_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], 
         )
     access_token_expires = timedelta(minutes=20)
     access_token = create_access_token(
-        data={"sub": user.username, "id": user.id},
+        data={"username": user.username, "id": user.id},
         expires_delta=access_token_expires
     )
+    #acrually it will return {"username":  "zero","id": 443, "exp": 1705839660}
     return {"access_token": access_token, "token_type": "bearer"}
 
 def authenticate_user(password: str, username: str, db: Session = Depends(get_db)):
-    stmt = select(UserModel).where(UserModel.username == username)
-    user = db.execute(stmt).scalar()
+    user = db.execute(select(UserModel).where(UserModel.username == username)).scalar()
     if not user:
         return False
     if not pwd_context.verify(password ,user.hashed_password):
@@ -47,21 +47,19 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     encoded_jwt = jwt.encode(to_encode, settings.secret, algorithm=settings.algorithm)
     return encoded_jwt
 
-async def get_current_user(token: str = Depends(oauth2_scheme),db: Session = Depends(get_db)):
+def get_current_user(token: Annotated[str, Depends(oauth2_scheme)],db: Session):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
     )
     try:
         payload = jwt.decode(token, settings.secret, algorithms=[settings.algorithm])
-        username: str = payload.get("username")
         user_id: int = payload.get("id")
         if user_id is None:
             raise credentials_exception
-        token_data = TokenData(username=username, id=user_id)
     except JWTError:
         raise credentials_exception
-    user = db.query(UserModel).filter(UserModel.id==token_data.id).first()
+    user = db.execute(select(UserModel).where(UserModel.id==user_id)).scalar()
     if user is None:
         raise credentials_exception
     return user
