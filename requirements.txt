@@ -14,5 +14,5 @@ pydantic[email]
 passlib
 bcrypt
 fastapi_users
-jose
+python-jose
 fastapi.security
