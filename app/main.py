@@ -1,11 +1,15 @@
 import uvicorn
 from fastapi import FastAPI
 from config import settings
-from app.routers.user import user_router
+from app.routers.admin_router import admin_router
+from app.routers.token_router import token_router
+from app.routers.user_router import user_router
 from fastapi_pagination import add_pagination
 
 app = FastAPI()
-app.include_router(user_router, prefix="/user")
+app.include_router(admin_router, prefix="/admin")
+app.include_router(user_router)
+app.include_router(token_router)
 @app.get("/")
 def read_root():
     return {"status_code": 200, "detail": "ok", "result": "working"}

@@ -10,7 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/user/token/")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token/")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def login_get_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Session = Depends(get_db)):

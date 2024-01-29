@@ -23,7 +23,7 @@ class AbstractRepository(ABC):
     def add(self):
         raise NotImplementedError
 
-class CrudRepository(AbstractRepository):
+class AdminRepository(AbstractRepository):
     def __init__(self, model):
         self.model = model
 
@@ -66,4 +66,4 @@ class CrudRepository(AbstractRepository):
         db.commit()
         return {"id":id_}
 
-user_repo = CrudRepository(UserModel)
+admin_repo = AdminRepository(UserModel)
