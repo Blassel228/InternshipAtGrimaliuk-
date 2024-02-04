@@ -5,12 +5,13 @@ from fastapi import APIRouter, Depends
 from app.db.models.models import get_db
 from sqlalchemy.orm import Session
 from app.schemas.schemas import Token
+from sqlalchemy.ext.asyncio import AsyncSession
 
 token_router = APIRouter(tags=["token"])
 @token_router.post("/token/", response_model=Token)
-def get_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Session = Depends(get_db)):
-    return login_get_token(db=db, form_data=form_data)
+async def get_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: AsyncSession = Depends(get_db)):
+    return await login_get_token(form_data=form_data, db=db)
 
 @token_router.post("/me")
-def get_by_token(token: Annotated[str, Depends(oauth2_scheme)], db: Session = Depends(get_db)):
-    return get_current_user(token, db)
+async def get_by_token(token: Annotated[str, Depends(oauth2_scheme)], db: AsyncSession = Depends(get_db)):
+    return await get_current_user(token=token, db=db)
