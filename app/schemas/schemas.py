@@ -3,6 +3,10 @@ from fastapi import HTTPException
 from typing import Optional
 from datetime import datetime
 
+from fastapi import HTTPException
+from pydantic import BaseModel, EmailStr, model_validator
+
+
 class User(BaseModel):
     id: int
     username: str
@@ -13,21 +17,26 @@ class User(BaseModel):
     #hashed_password: str
 
 class UserUpdateIn(BaseModel):
-    username: str
-    password: str
-    email: Optional[EmailStr] = None
+    id: int
+    username: Optional[str] = None
+    password: Optional[str] = None
+    mail: Optional[EmailStr] = None
+
 
 class UserUpdate(BaseModel):
-    username: str
-    password: str
-    email: Optional[EmailStr] = None
+    id: int
+    username: Optional[str] = None
+    password: Optional[str] = None
+    mail: Optional[EmailStr] = None
+    update_by: int
 
-    @field_validator("email")
-    @classmethod
-    def email_validator(cls, email):
-        if email is not None:
+    @model_validator(mode="after")
+    def validator(cls, values):
+        if values.update_by != values.id:
+            raise HTTPException(detail="User can change only itself", status_code=403)
+        if values.mail is not None:
             raise HTTPException(detail="Email cannot be changed", status_code=403)
-        return email
+        return values.mail
 
 class Token(BaseModel):
     access_token: str
@@ -35,4 +44,5 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     id: int
+    username: str
     username: str

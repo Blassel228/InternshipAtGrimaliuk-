@@ -5,8 +5,8 @@ from typing import Annotated
 from fastapi import Depends, HTTPException
 from app.core.autho import oauth2_scheme
 class UserService:
-    async def update(self, db: Session, token: Annotated[str, Depends(oauth2_scheme)], data: UserUpdate):
-        user = await user_repo.update(data=data, token=token, db=db)
+    async def update(self, db: Session, data: UserUpdate):
+        user = await user_repo.update(id_=data.id, data=data, db=db)
         if user is None:
             raise HTTPException(status_code=404, detail="The user is not valid")
         return user

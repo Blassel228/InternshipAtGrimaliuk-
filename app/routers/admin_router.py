@@ -21,7 +21,7 @@ async def get(id_: int = None, db: AsyncSession = Depends(get_db)):
     return await admin_service.get_one(id_=id_, db=db)
 
 @admin_router.post("/")
-async def create(db: AsyncSession = Depends(get_db), data: User = None):
+async def create(data: User, db: AsyncSession = Depends(get_db)):
     return await admin_service.add(db=db, data=data)
 @admin_router.get("/")
 async def get_all(db: AsyncSession = Depends(get_db)):

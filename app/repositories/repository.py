@@ -9,6 +9,7 @@ class CrudRepository:
     async def get_all(self, db: AsyncSession):
         res = await db.scalars(select(self.model))
         return res.all()
+
     async def get_one(self, id_: int, db: AsyncSession):
         res = await db.scalars(select(self.model).where(id_==self.model.id))
         return res.first()

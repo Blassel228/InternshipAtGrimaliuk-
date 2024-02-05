@@ -1,6 +1,6 @@
 from app.db.models.models import UserModel
 from passlib.context import CryptContext
-from sqlalchemy import update, delete
+from sqlalchemy import update, delete, select
 from app.core.autho import get_current_user
 from typing import Annotated
 from fastapi import Depends
@@ -11,24 +11,31 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-class UserRepository(CrudRepository):
 
-    async def update(self, db: AsyncSession, data: UserUpdate, token: Annotated[str, Depends(oauth2_scheme)]):
-        user = await get_current_user(token=token, db=db)
-        stmt = (update(self.model).values(hashed_password=pwd_context.hash(data.password), username=data.username).
-                where(self.model.id == user.id))
-        res = await db.execute(stmt)
-        if res.rowcount==0:
+class UserRepository(CrudRepository):
+    async def update(self, id_: int, db: AsyncSession, data: UserUpdate):
+        if data.password is not None:
+            data.password = pwd_context.hash(data.password)
+        data_dict = data.model_dump(exclude={"id", "update_by"}, exclude_none=True)
+        data_dict["hashed_password"] = data_dict.pop("password")
+        if not data_dict:
             return None
+        stmt = (update(self.model).values(**data_dict).where(self.model.id == id_))
+        await db.execute(stmt)
         await db.commit()
-        return data
+        stmt = select(self.model).where(self.model.id==id_)
+        res = await db.scalar(stmt)
+        return res
 
     async def delete(self, db: AsyncSession, token: Annotated[str, Depends(oauth2_scheme)]):
-        user_id = get_current_user(token=token, db=db).id
+        user = await get_current_user(token=token, db=db)
+        user_id = user.id
         stmt = delete(self.model).where(self.model.id == user_id)
         res = await db.execute(stmt)
-        if res.rowcount==0:
+        if res.rowcount == 0:
             return None
         await db.commit()
         return {"id": user_id}
+
+
 user_repo = UserRepository(UserModel)

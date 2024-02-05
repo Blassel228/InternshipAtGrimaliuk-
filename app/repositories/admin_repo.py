@@ -1,7 +1,7 @@
 from app.db.models.models import UserModel
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
-from sqlalchemy import insert, update
+from sqlalchemy import insert, update, select
 from app.repositories.repository import CrudRepository
 from app.schemas.schemas import User
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,7 +16,9 @@ class AdminRepository(CrudRepository):
         res = await db.execute(stmt)
         if res.rowcount==0:
             return None
-        return data
+        await db.commit()
+        res = await db.scalars(select(self.model).where(self.model.id==data["id"]))
+        return res.first()
 
     async def update(self, id_: int, db: AsyncSession, data: User):
         data = data.model_dump()
