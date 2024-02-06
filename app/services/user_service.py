@@ -11,8 +11,8 @@ class UserService:
             raise HTTPException(status_code=404, detail="The user is not valid")
         return user
 
-    async def delete(self, db: Session, token: Annotated[str, Depends(oauth2_scheme)]):
-        user_id = await user_repo.delete(token=token, db=db)
+    async def delete(self, db: Session, id_: int):
+        user_id = await user_repo.delete(id_=id_, db=db)
         if user_id is None:
             raise HTTPException(status_code=404, detail="The user is not valid")
         return user_id

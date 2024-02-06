@@ -13,5 +13,5 @@ async def user_update(data: UserUpdateIn, current_user = Depends(get_current_use
     return await user_service.update(data=UserUpdate(**data.model_dump(), update_by=current_user.id), db=db)
 
 @user_router.delete("/self_delete")
-async def user_delete(token: Annotated[str, Depends(oauth2_scheme)], db: AsyncSession = Depends(get_db)):
-    return await user_service.delete(token=token, db=db)
+async def user_delete(current_user = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    return await user_service.delete(id_=current_user.id, db=db)

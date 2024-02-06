@@ -27,15 +27,13 @@ class UserRepository(CrudRepository):
         res = await db.scalar(stmt)
         return res
 
-    async def delete(self, db: AsyncSession, token: Annotated[str, Depends(oauth2_scheme)]):
-        user = await get_current_user(token=token, db=db)
-        user_id = user.id
-        stmt = delete(self.model).where(self.model.id == user_id)
+    async def delete(self, db: AsyncSession, id_: int):
+        stmt = delete(self.model).where(self.model.id == id_)
         res = await db.execute(stmt)
         if res.rowcount == 0:
             return None
         await db.commit()
-        return {"id": user_id}
+        return res
 
 
 user_repo = UserRepository(UserModel)
