@@ -1,8 +1,5 @@
-from pydantic import BaseModel, EmailStr, field_validator
-from fastapi import HTTPException
 from typing import Optional
 from datetime import datetime
-
 from fastapi import HTTPException
 from pydantic import BaseModel, EmailStr, model_validator
 
@@ -12,16 +9,13 @@ class User(BaseModel):
     username: str
     password: str
     mail: EmailStr
-    #registered_date: datetime
     role: int
-    #hashed_password: str
 
 class UserUpdateIn(BaseModel):
     id: int
     username: Optional[str] = None
     password: Optional[str] = None
     mail: Optional[EmailStr] = None
-
 
 class UserUpdate(BaseModel):
     id: int
@@ -42,7 +36,15 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
-class TokenData(BaseModel):
+class CompanySchemaIn(BaseModel):
     id: int
-    username: str
-    username: str
+    name: str
+    description: Optional[str] = None
+    visible: Optional[bool] = True
+class CompanySchema(BaseModel):
+    id: int
+    name: str
+    description: Optional[str] = None
+    visible: Optional[bool] = True
+    owner_id: int
+

@@ -1,7 +1,7 @@
 from sqlalchemy import insert, update, select, delete
 from pydantic import BaseModel
-from sqlalchemy.ext.asyncio import AsyncSession, AsyncResult
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+
 class CrudRepository:
     def __init__(self, model):
         self.model = model
@@ -11,17 +11,17 @@ class CrudRepository:
         return res.all()
 
     async def get_one(self, id_: int, db: AsyncSession):
-        res = await db.scalars(select(self.model).where(id_==self.model.id))
+        res = await db.scalars(select(self.model).where(self.model.id==id_))
         return res.first()
 
     async def add(self, db: AsyncSession, data: BaseModel):
-        data = data.model_dump()
-        stmt = (insert(self.model).values(**data))
+        stmt = (insert(self.model).values(**data.model_dump()))
         res = await db.execute(stmt)
         if res.rowcount==0:
             return None
         await db.commit()
-        return res.first()
+        res = await db.scalar(select(self.model).where(self.model.id==data.id))
+        return res
 
     async def update(self, id_: int, db: AsyncSession, data: BaseModel):
         stmt = update(self.model).values(**data).where(self.model.id == id_)
@@ -29,7 +29,9 @@ class CrudRepository:
         if res.rowcount==0:
             return None
         await db.commit()
-        return data
+        stmt = select(self.model).where(self.model.id == id_)
+        res = await db.scalar(stmt)
+        return res
 
     async def delete(self, id_: int, db: AsyncSession):
         stmt = delete(self.model).where(self.model.id == id_)
