@@ -1,10 +1,6 @@
 from app.db.models.models import UserModel
 from passlib.context import CryptContext
 from sqlalchemy import update, delete, select
-from app.core.autho import get_current_user
-from typing import Annotated
-from fastapi import Depends
-from app.core.autho import oauth2_scheme
 from app.schemas.schemas import UserUpdate
 from app.repositories.repository import CrudRepository
 from sqlalchemy.ext.asyncio import AsyncSession

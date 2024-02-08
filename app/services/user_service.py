@@ -1,9 +1,7 @@
 from sqlalchemy.orm import Session
-from app.repositories.user_repo import user_repo
+from app.CRUD.user_crud import user_repo
 from app.schemas.schemas import UserUpdate
-from typing import Annotated
-from fastapi import Depends, HTTPException
-from app.core.autho import oauth2_scheme
+from fastapi import HTTPException
 class UserService:
     async def update(self, db: Session, data: UserUpdate):
         user = await user_repo.update(id_=data.id, data=data, db=db)
