@@ -1,4 +1,5 @@
-from app.db.models.models import UserModel, CompanyModel
+from app.db.models.models import UserModel
+from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from sqlalchemy import insert, update, select
 from app.repositories.repository import CrudRepository
@@ -7,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-class AdminCrud(CrudRepository):
+class AdminRepository(CrudRepository):
 
     async def add(self, db: AsyncSession, data: User):
         data = data.model_dump()
@@ -29,4 +30,4 @@ class AdminCrud(CrudRepository):
         await db.commit()
         return data
 
-admin_crud = AdminCrud(UserModel)
+admin_repo = AdminRepository(UserModel)
