@@ -1,11 +1,10 @@
 from fastapi import APIRouter, Depends
-from app.db.models.models import get_db
 from app.schemas.schemas import UserUpdateIn, UserUpdate
 from app.services.user_service import user_service
-from app.core.autho import get_current_user
+from app.utils.deps import get_current_user, get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 
-user_router = APIRouter(tags=["user"])
+user_router = APIRouter(tags=["user"], prefix="/user")
 
 @user_router.put("/update")
 async def user_update(data: UserUpdateIn, current_user = Depends(get_current_user), db: AsyncSession = Depends(get_db)):

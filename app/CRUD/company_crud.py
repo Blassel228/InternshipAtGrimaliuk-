@@ -1,5 +1,5 @@
 from app.schemas.schemas import CompanySchema, CompanySchemaIn
-from app.db.models.models import get_db
+from app.utils.deps import get_db
 from sqlalchemy import update, delete, insert, select
 from app.db.models.models import CompanyModel
 from fastapi import Depends, HTTPException
@@ -16,17 +16,17 @@ class CompanyCrud(CrudRepository):
         res = await db.scalars(select(self.model).where(self.model.id == id_ and self.model.visible == True))
         return res.first()
 
-    async def update(self, id_company_to_change: int, user_id: int, db: AsyncSession, data: CompanySchemaIn): # noqa
-        stmt = select(self.model).where(self.model.id == id_company_to_change)
+    async def update(self, id_: int, user_id: int, db: AsyncSession, data: CompanySchemaIn): # noqa
+        stmt = select(self.model).where(self.model.id == id_)
         company_to_change = await db.scalar(stmt)
+        if company_to_change is None:
+            raise HTTPException(status_code=404, detail="Company you are trying to change does not exist")
         if user_id == company_to_change.owner_id:
             data = data.model_dump()
             stmt = update(self.model).values(data).where(self.model.owner_id== user_id)
-            res = await db.execute(stmt)
+            await db.execute(stmt)
         else:
             raise HTTPException(status_code=404, detail="You are trying to change company you do not own")
-        if res.rowcount==0:
-            raise HTTPException(status_code=404, detail="Company you are trying to change does not exist")
         await db.commit()
         stmt = select(self.model).where(self.model.id == data["id"])
         res = await db.scalar(stmt)

@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-class AdmonCrud(CrudRepository):
+class AdminCrud(CrudRepository):
 
     async def add(self, db: AsyncSession, data: User):
         data = data.model_dump()
@@ -29,4 +29,4 @@ class AdmonCrud(CrudRepository):
         await db.commit()
         return data
 
-admin_crud = AdmonCrud(UserModel)
+admin_crud = AdminCrud(UserModel)

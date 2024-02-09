@@ -1,11 +1,10 @@
 from fastapi import APIRouter, Depends
-from app.db.models.models import get_db
-from app.core.autho import get_current_user
+from app.utils.deps import get_current_user, get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.CRUD.company_crud import company_crud
 from app.schemas.schemas import CompanySchemaIn, CompanySchema
 
-company_router = APIRouter(tags=["company"])
+company_router = APIRouter(tags=["company"], prefix="/company")
 
 @company_router.get("/get_companies")
 async def select_company(db: AsyncSession = Depends(get_db)):
@@ -25,5 +24,5 @@ async def delete_company(id_: int, current_user = Depends(get_current_user), db:
 
 
 @company_router.put("/update_company")
-async def update_company(id_company_to_change: int, data: CompanySchemaIn, current_user = Depends(get_current_user),  db: AsyncSession = Depends(get_db)):
-    return await company_crud.update(db=db, data=data, user_id=current_user.id, id_company_to_change=id_company_to_change)
+async def update_company(id_: int, data: CompanySchemaIn, current_user = Depends(get_current_user),  db: AsyncSession = Depends(get_db)):
+    return await company_crud.update(db=db, data=data, user_id=current_user.id, id_=id_)

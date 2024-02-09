@@ -21,13 +21,6 @@ class UserModel(Base):
     hashed_password = Column(String, nullable=False)
     companies = relationship("CompanyModel", back_populates="owner", cascade="all, delete-orphan")
 
-    def __init__(self, id, username, mail, role, hashed_password):
-        self.id=id
-        self.username=username
-        self.mail=mail
-        self.role=role
-        self.hashed_password=hashed_password
-
 class CompanyModel(Base):
     __tablename__ = "company"
     id = Column(Integer, primary_key=True)
@@ -36,12 +29,7 @@ class CompanyModel(Base):
     description = Column(String, nullable=False)
     registration_date = Column(String, default=str(datetime.datetime.now()))
     visible = Column(Boolean, default=True)
-    owner = relationship("UserModel", back_populates="companies")
-
-    def __init__(self, owner_id, name, description):
-        self.owner_id = owner_id
-        self.name = name
-        self.description = description
+    members = relationship("UserModel", back_populates="companies")
 
 @event.listens_for(UserModel, "before_update")
 def update_company_owner_id(mapper, connection, target):
@@ -51,9 +39,3 @@ def update_company_owner_id(mapper, connection, target):
         .where(CompanyModel.owner_id == user_id)
         .values(owner_id=user_id))
 
-async def get_db():
-    db = session()
-    try:
-        yield db
-    finally:
-        await db.close()
