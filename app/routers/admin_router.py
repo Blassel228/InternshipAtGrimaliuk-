@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends
-from app.db.models.models import get_db
+from app.utils.deps import get_db
 from sqlalchemy.orm import Session
 from app.schemas.schemas import User#, UserIn
 from app.services.admin_service import admin_service
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
-admin_router = APIRouter(tags=["admin"])
+admin_router = APIRouter(tags=["admin"], prefix="/admin")
 
 @admin_router.put("/")
 async def update(db: AsyncSession = Depends(get_db), data: User = None, id_: int = None):
