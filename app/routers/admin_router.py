@@ -1,10 +1,8 @@
 from fastapi import APIRouter, Depends
 from app.utils.deps import get_db
-from sqlalchemy.orm import Session
-from app.schemas.schemas import User#, UserIn
+from app.schemas.schemas import User
 from app.services.admin_service import admin_service
 from sqlalchemy.ext.asyncio import AsyncSession
-
 
 admin_router = APIRouter(tags=["admin"], prefix="/admin")
 

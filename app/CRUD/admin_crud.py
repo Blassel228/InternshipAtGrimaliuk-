@@ -30,4 +30,4 @@ class AdminRepository(CrudRepository):
         await db.commit()
         return data
 
-admin_repo = AdminRepository(UserModel)
+admin_crud = AdminRepository(UserModel)

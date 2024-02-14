@@ -37,14 +37,24 @@ class Token(BaseModel):
     token_type: str
 
 class CompanySchemaIn(BaseModel):
-    id: int
+    company_id: int
     name: str
     description: Optional[str] = None
     visible: Optional[bool] = True
 class CompanySchema(BaseModel):
-    id: int
+    company_id: int
     name: str
     description: Optional[str] = None
     visible: Optional[bool] = True
     owner_id: int
 
+class RequestSchemaCreateIn(BaseModel):
+    recipient_id: int
+    company_name: str
+    invitation_text: str
+class RequestSchemaCreate(BaseModel):
+    recipient_id: int
+    owner_id: int
+    company_id: int
+    company_name: str
+    invitation_text: str

@@ -1,4 +1,4 @@
-from app.schemas.schemas import User#, UserIn
+from app.schemas.schemas import User
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.CRUD.admin_crud import admin_crud
