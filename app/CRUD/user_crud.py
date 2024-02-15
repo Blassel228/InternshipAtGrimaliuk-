@@ -23,13 +23,12 @@ class UserRepository(CrudRepository):
         res = await db.scalar(stmt)
         return res
 
-    async def delete(self, db: AsyncSession, id_: int):
-        stmt = delete(self.model).where(self.model.id == id_)
+    async def delete(self, db: AsyncSession, user_id: int):
+        stmt = delete(self.model).where(self.model.id == user_id)
         res = await db.execute(stmt)
         if res.rowcount == 0:
             return None
         await db.commit()
         return res
-
 
 user_repo = UserRepository(UserModel)

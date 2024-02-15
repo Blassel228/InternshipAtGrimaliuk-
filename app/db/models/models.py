@@ -29,11 +29,21 @@ class CompanyModel(Base):
     registration_date = Column(String, default=str(datetime.datetime.now()))
     visible = Column(Boolean, default=True)
     members = relationship("UserModel", back_populates="companies", uselist=True)
-class RequestModel(Base):
-    __tablename__ = "request"
-    request_id = Column(Integer, primary_key=True)
+
+class InvitationModel(Base):
+    __tablename__ = "invitation"
+    invitation_id = Column(Integer, primary_key=True)
     company_id = Column(Integer, ForeignKey("company.company_id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False)
     owner_id = Column(Integer, ForeignKey("user.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False)
     recipient_id = Column(Integer, ForeignKey("user.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False)
     invitation_text = Column(String)
+    registration_date = Column(String, default=str(datetime.datetime.now()))
+
+class RequestModel(Base):
+    __tablename__ = "request"
+    request_id = Column(Integer, primary_key=True)
+    company_id = Column(Integer, ForeignKey("company.company_id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False)
+    sender_id = Column(Integer, ForeignKey("user.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False)
+    company_name = Column(String, nullable=False)
+    request_text = Column(String)
     registration_date = Column(String, default=str(datetime.datetime.now()))
