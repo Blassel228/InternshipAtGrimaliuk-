@@ -13,10 +13,14 @@ class RequestCrud(CrudRepository):
         company = await db.scalar(stmt)
         if company is None:
             raise HTTPException(status_code=404, detail="Such a company does not exist")
-        if company.company_id == user_id:
+        if company.owner_id == user_id:
             raise HTTPException(status_code=404, detail="You cannot send request to company you own")
-        request = RequestSchemaCreate(sender_id=user_id, company_id=company.company_id, **request.model_dump())
-        stmt = insert(self.model).values(**request.model_dump(exclude={"company_name"}))
+        stmt = select(self.model).where(self.model.sender_id == user_id and self.model.company_id == company.company_id)
+        res = await db.scalar(stmt)
+        if res is not None:
+            raise HTTPException(status_code=404, detail="You have already sent request to that company")
+        request = RequestSchemaCreate(**request.model_dump(), sender_id=user_id, company_id=company.company_id)
+        stmt = insert(self.model).values(**request.model_dump())
         await db.execute(stmt)
         await db.commit()
         return request
@@ -27,7 +31,7 @@ class RequestCrud(CrudRepository):
         if res is None:
             raise HTTPException(status_code=404, detail="The request with such an id does not exist")
         if user_id == res.sender_id:
-            stmt = delete(self.model).where(self.model.invitation_id == id_)
+            stmt = delete(self.model).where(self.model.request_id == id_)
             await db.execute(stmt)
             await db.commit()
         else:
@@ -45,7 +49,7 @@ class RequestCrud(CrudRepository):
         company = await db.scalar(stmt)
         if company.owner_id != user_id:
             raise HTTPException(status_code=404, detail="You can not accept the request as you are not the owner")
-        await company.members.append(user)
+        company.members.append(user)
         stmt = delete(self.model).where(self.model.request_id == request.request_id)
         await db.execute(stmt)
         await db.commit()
@@ -60,7 +64,7 @@ class RequestCrud(CrudRepository):
         company = await db.scalar(stmt)
         if company.owner_id != user_id:
             raise HTTPException(status_code=404, detail="You do not own the company to reject the request")
-        stmt = delete(self.model).where(self.model.invitation_id == request.invitation_id)
+        stmt = delete(self.model).where(self.model.request_id == request.request_id)
         await db.execute(stmt)
         await db.commit()
         return request
@@ -77,11 +81,11 @@ class RequestCrud(CrudRepository):
         companies = await db.scalars(stmt)
         if companies is None:
             raise HTTPException(status_code=404, detail="You do not have requests because you do not own a company")
-        requests = set()
+        requests = dict()
         for company in companies.all():
             stmt = select(self.model).where(self.model.company_id == company.company_id)
             res = await db.scalars(stmt)
-            requests.add(res.all())
+            requests[f"{company.name}"] = res.all()
         if requests is None:
             raise HTTPException(status_code=404, detail="You do not have any request")
         return requests

@@ -4,13 +4,15 @@ from sqlalchemy import MetaData, Column, Integer, String, ForeignKey, Boolean
 from sqlalchemy.orm import declarative_base
 from config import settings
 from sqlalchemy.orm import relationship
+from sqlalchemy.ext.asyncio import AsyncAttrs
+from sqlalchemy.orm import DeclarativeBase
 
 metadata = MetaData()
 Base = declarative_base(metadata=metadata)
 engine = create_async_engine(f'postgresql+asyncpg://{settings.postgresql_user}:{settings.postgresql_password}@{settings.postgresql_host}:{settings.postgresql_port}/{settings.postgresql_database_name}')
 session = async_sessionmaker(engine)
 
-class UserModel(Base):
+class UserModel(Base, AsyncAttrs):
     __tablename__ = "user"
     id = Column(Integer, primary_key=True)
     username = Column(String, nullable=False, unique=True)
@@ -20,7 +22,7 @@ class UserModel(Base):
     hashed_password = Column(String, nullable=False)
     companies = relationship("CompanyModel", back_populates="members", cascade="all, delete-orphan", uselist=True)
 
-class CompanyModel(Base):
+class CompanyModel(Base, AsyncAttrs):
     __tablename__ = "company"
     company_id = Column(Integer, primary_key=True)
     owner_id = Column(Integer, ForeignKey("user.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False)
@@ -29,7 +31,6 @@ class CompanyModel(Base):
     registration_date = Column(String, default=str(datetime.datetime.now()))
     visible = Column(Boolean, default=True)
     members = relationship("UserModel", back_populates="companies", uselist=True)
-
 class InvitationModel(Base):
     __tablename__ = "invitation"
     invitation_id = Column(Integer, primary_key=True)

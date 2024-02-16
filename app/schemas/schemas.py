@@ -61,11 +61,13 @@ class InvitationSchemaCreate(BaseModel):
     invitation_text: str
 
 class RequestSchemaCreateIn(BaseModel):
+    request_id: int
     company_name: str
-    invitation_text: str
+    request_text: str
 
 class RequestSchemaCreate(BaseModel):
+    request_id: int
     company_id: int
     sender_id: int
     company_name: str
-    invitation_text: str
+    request_text: str

@@ -8,11 +8,11 @@ from app.utils.deps import get_current_user
 request_router = APIRouter(tags=["request"], prefix="/request")
 
 @request_router.post("/send_request")
-async def send_request(db: AsyncSession = Depends(get_db), current_user = Depends(get_current_user), invitation: RequestSchemaCreateIn = None):
-    return await request_crud.send_request(invitation=invitation, db=db, user_id=current_user.id)
+async def send_request(db: AsyncSession = Depends(get_db), current_user = Depends(get_current_user), request: RequestSchemaCreateIn = None):
+    return await request_crud.send_request(request=request, db=db, user_id=current_user.id)
 
 @request_router.delete("/delete")
-async def send_request(id_: int, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_user)):
+async def delete(id_: int, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_user)):
     return await request_crud.delete(id_=id_, db=db, user_id=current_user.id)
 
 @request_router.post("/accept_request")
