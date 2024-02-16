@@ -65,4 +65,25 @@ class RequestCrud(CrudRepository):
         await db.commit()
         return request
 
+    async def user_get_requests(self, user_id: int, db: AsyncSession):
+        stmt = select(self.model).where(self.model.sender_id == user_id)
+        res = await db.scalars(stmt)
+        if res is None:
+            raise HTTPException(status_code=404, detail="There is no requests you sent")
+        return res.all()
+
+    async def owner_get_requests(self, user_id: int, db: AsyncSession):
+        stmt = select(CompanyModel).where(CompanyModel.owner_id == user_id)
+        companies = await db.scalars(stmt)
+        if companies is None:
+            raise HTTPException(status_code=404, detail="You do not have requests because you do not own a company")
+        requests = set()
+        for company in companies.all():
+            stmt = select(self.model).where(self.model.company_id == company.company_id)
+            res = await db.scalars(stmt)
+            requests.add(res.all())
+        if requests is None:
+            raise HTTPException(status_code=404, detail="You do not have any request")
+        return requests
+
 request_crud = RequestCrud(RequestModel)

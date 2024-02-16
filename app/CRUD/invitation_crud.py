@@ -76,4 +76,11 @@ class InvitationCrud(CrudRepository):
         await db.commit()
         return invitation
 
+    async def get_invited(self, user_id: int, db: AsyncSession):
+        stmt = select(self.model).where(self.model.owner_id == user_id)
+        res = await db.scalars(stmt)
+        if res is None:
+            raise HTTPException(status_code=404, detail="You did not send any invitation")
+        return res.all()
+
 invitation_crud = InvitationCrud(InvitationModel)

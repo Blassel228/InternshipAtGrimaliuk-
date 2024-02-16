@@ -77,13 +77,13 @@ class CompanyCrud(CrudRepository):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User is not a member of this company")
 
     async def user_resign(self, db: AsyncSession, user_id: int):
-        stmt = delete(UserModel).where(self.model.id == user_id)
+        stmt = select(UserModel).where(self.model.id == user_id)
         user = await db.execute(stmt)
         stmt = select(CompanyModel).where(user.companies[0] == CompanyModel.name)
         company = await db.execute(stmt)
         company.members.remove(user)
         await db.commit()
-        return user
+        return f"User {user.name} resigned from company {company.name}"
 
     async def get_users_in_company(self, db: AsyncSession, user_id: int, company_name: str):
         stmt = select(CompanyModel).where(self.model.name == company_name)
