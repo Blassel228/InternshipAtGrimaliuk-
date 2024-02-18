@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import create_async_engine,async_sessionmaker
 import datetime
-from sqlalchemy import MetaData, Column, Integer, String, ForeignKey, Boolean
+from sqlalchemy import MetaData, Column, Integer, String, ForeignKey, Boolean, Table
 from sqlalchemy.orm import declarative_base
 from config import settings
 from sqlalchemy.orm import relationship
@@ -20,7 +20,6 @@ class UserModel(Base, AsyncAttrs):
     registration_date = Column(String, default=str(datetime.datetime.now()))
     role = Column(Integer, nullable=False)
     hashed_password = Column(String, nullable=False)
-    companies = relationship("CompanyModel", back_populates="members", cascade="all, delete-orphan", uselist=True)
 
 class CompanyModel(Base, AsyncAttrs):
     __tablename__ = "company"
@@ -30,7 +29,7 @@ class CompanyModel(Base, AsyncAttrs):
     description = Column(String, nullable=False)
     registration_date = Column(String, default=str(datetime.datetime.now()))
     visible = Column(Boolean, default=True)
-    members = relationship("UserModel", back_populates="companies", uselist=True)
+
 class InvitationModel(Base):
     __tablename__ = "invitation"
     invitation_id = Column(Integer, primary_key=True)
@@ -47,4 +46,13 @@ class RequestModel(Base):
     sender_id = Column(Integer, ForeignKey("user.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False)
     company_name = Column(String, nullable=False)
     request_text = Column(String)
+    registration_date = Column(String, default=str(datetime.datetime.now()))
+
+class MemberModel(Base):
+    __tablename__ = "member"
+    id = Column(Integer, primary_key=True)
+    company_id = Column(Integer, ForeignKey("company.company_id", onupdate="CASCADE", ondelete="CASCADE"),nullable=False)
+    mail = Column(String, ForeignKey("user.mail", onupdate="CASCADE", ondelete="CASCADE"), nullable=False, unique=True)
+    company_name = Column(String, nullable=False)
+    name = Column(String, nullable=False)
     registration_date = Column(String, default=str(datetime.datetime.now()))

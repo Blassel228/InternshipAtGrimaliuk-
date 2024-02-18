@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 from sqlalchemy import delete, select, insert
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db.models.models import CompanyModel, InvitationModel, UserModel
+from app.db.models.models import CompanyModel, InvitationModel, UserModel, MemberModel
 from app.schemas.schemas import InvitationSchemaCreate, InvitationSchemaCreateIn
 from fastapi import Depends
 from app.repositories.repository import CrudRepository
@@ -48,6 +48,12 @@ class InvitationCrud(CrudRepository):
         return {"id_": id_}
 
     async def accept_invitation(self, id_: int, user_id: int, db: AsyncSession = Depends(get_db)):
+        stmt = select(UserModel).where(UserModel.id == user_id)
+        res = await db.scalar(stmt)
+        stmt = select(MemberModel).where(MemberModel.mail == res.mail)
+        res = db.execute(stmt)
+        if res is not None:
+            raise HTTPException(status_code=404, detail="You are in a company already")
         stmt = select(self.model).where(self.model.invitation_id == id_)
         res = await db.scalar(stmt)
         if res is None:
@@ -58,11 +64,13 @@ class InvitationCrud(CrudRepository):
         user = await db.scalar(stmt)
         stmt = select(CompanyModel).where(self.model.company_id == res.company_id)
         company = await db.scalar(stmt)
-        await company.members.append(user)
+        stmt = insert(MemberModel).values(company_id=company.company_id, company_name=company.name,
+                                          mail=user.mail, name=user.username)
+        await db.execute(stmt)
         stmt = delete(self.model).where(self.model.invitation_id == res.invitation_id)
         await db.execute(stmt)
         await db.commit()
-        return {f"User {user} was added to company {company.name}"}
+        return f"{user} was added to {company.name}"
 
     async def reject_invitation(self, id_: int, user_id: int, db: AsyncSession = Depends(get_db)):
         stmt = select(self.model).where(self.model.invitation_id == id_)

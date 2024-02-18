@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 from sqlalchemy import update, delete, select, insert
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db.models.models import CompanyModel, RequestModel, UserModel
+from app.db.models.models import CompanyModel, RequestModel, UserModel, MemberModel
 from app.schemas.schemas import RequestSchemaCreate, RequestSchemaCreateIn
 from fastapi import Depends
 from app.repositories.repository import CrudRepository
@@ -9,6 +9,12 @@ from app.utils.deps import get_db
 
 class RequestCrud(CrudRepository):
     async def send_request(self, user_id: int, request: RequestSchemaCreateIn, db: AsyncSession = Depends(get_db)):
+        stmt = select(UserModel).where(UserModel.id == user_id)
+        res = await db.scalar(stmt)
+        stmt = select(MemberModel).where(MemberModel.mail == res.mail)
+        res = db.execute(stmt)
+        if res is not None:
+            raise HTTPException(status_code=404, detail="You are in a company already")
         stmt = select(CompanyModel).where(CompanyModel.name == request.company_name)
         company = await db.scalar(stmt)
         if company is None:
@@ -45,15 +51,17 @@ class RequestCrud(CrudRepository):
             raise HTTPException(status_code=404, detail="The request with such an id does not exist")
         stmt = select(UserModel).where(self.model.sender_id == user_id)
         user = await db.scalar(stmt)
-        stmt = select(CompanyModel).where(self.model.company_id == request.company_id)
+        stmt = select(CompanyModel).where(CompanyModel.owner_id == user_id)
         company = await db.scalar(stmt)
         if company.owner_id != user_id:
             raise HTTPException(status_code=404, detail="You can not accept the request as you are not the owner")
-        company.members.append(user)
+        stmt = insert(MemberModel).values(company_id=company.company_id, company_name=company.name,
+                                   mail=user.mail, name=user.username)
+        await db.execute(stmt)
         stmt = delete(self.model).where(self.model.request_id == request.request_id)
         await db.execute(stmt)
         await db.commit()
-        return {f"User {user} was added to company {company.name}"}
+        return f"{user} was added to {company.name}"
 
     async def reject_request(self, id_: int, user_id: int, db: AsyncSession = Depends(get_db)):
         stmt = select(self.model).where(self.model.request_id == id_)
