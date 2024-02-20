@@ -1,10 +1,9 @@
-from sqlalchemy.ext.asyncio import create_async_engine,async_sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 import datetime
 from sqlalchemy import MetaData, Column, Integer, String, ForeignKey, Boolean, Table
 from sqlalchemy.orm import declarative_base
 from config import settings
 from sqlalchemy.orm import relationship
-from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase
 
 metadata = MetaData()
@@ -12,7 +11,7 @@ Base = declarative_base(metadata=metadata)
 engine = create_async_engine(f'postgresql+asyncpg://{settings.postgresql_user}:{settings.postgresql_password}@{settings.postgresql_host}:{settings.postgresql_port}/{settings.postgresql_database_name}')
 session = async_sessionmaker(engine)
 
-class UserModel(Base, AsyncAttrs):
+class UserModel(Base):
     __tablename__ = "user"
     id = Column(Integer, primary_key=True)
     username = Column(String, nullable=False, unique=True)
@@ -21,7 +20,7 @@ class UserModel(Base, AsyncAttrs):
     role = Column(Integer, nullable=False)
     hashed_password = Column(String, nullable=False)
 
-class CompanyModel(Base, AsyncAttrs):
+class CompanyModel(Base):
     __tablename__ = "company"
     company_id = Column(Integer, primary_key=True)
     owner_id = Column(Integer, ForeignKey("user.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False)
