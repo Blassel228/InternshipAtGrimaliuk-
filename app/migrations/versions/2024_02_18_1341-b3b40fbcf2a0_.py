@@ -27,7 +27,7 @@ def upgrade() -> None:
     sa.Column('company_name', sa.String(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('registration_date', sa.String(), nullable=True),
-    sa.ForeignKeyConstraint(['company_id'], ['company.company_id'], onupdate='CASCADE', ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['company_id'], ['company.id'], onupdate='CASCADE', ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['mail'], ['user.mail'], onupdate='CASCADE', ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )

@@ -22,7 +22,7 @@ class UserModel(Base):
 
 class CompanyModel(Base):
     __tablename__ = "company"
-    company_id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)
     owner_id = Column(Integer, ForeignKey("user.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False)
     name = Column(String, nullable=False, unique=True)
     description = Column(String, nullable=False)
@@ -31,26 +31,26 @@ class CompanyModel(Base):
 
 class InvitationModel(Base):
     __tablename__ = "invitation"
-    invitation_id = Column(Integer, primary_key=True)
-    company_id = Column(Integer, ForeignKey("company.company_id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False)
+    id = Column(Integer, primary_key=True)
+    company_id = Column(Integer, ForeignKey("company.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False)
     owner_id = Column(Integer, ForeignKey("user.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False)
     recipient_id = Column(Integer, ForeignKey("user.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False)
-    invitation_text = Column(String)
     registration_date = Column(String, default=str(datetime.datetime.now()))
+    invitation_text = Column(String)
 
 class RequestModel(Base):
     __tablename__ = "request"
-    request_id = Column(Integer, primary_key=True)
-    company_id = Column(Integer, ForeignKey("company.company_id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False)
+    id = Column(Integer, primary_key=True)
+    company_id = Column(Integer, ForeignKey("company.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False)
     sender_id = Column(Integer, ForeignKey("user.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False)
     company_name = Column(String, nullable=False)
-    request_text = Column(String)
     registration_date = Column(String, default=str(datetime.datetime.now()))
+    request_text = Column(String)
 
 class MemberModel(Base):
     __tablename__ = "member"
     id = Column(Integer, primary_key=True)
-    company_id = Column(Integer, ForeignKey("company.company_id", onupdate="CASCADE", ondelete="CASCADE"),nullable=False)
+    company_id = Column(Integer, ForeignKey("company.id", onupdate="CASCADE", ondelete="CASCADE"),nullable=False)
     mail = Column(String, ForeignKey("user.mail", onupdate="CASCADE", ondelete="CASCADE"), nullable=False, unique=True)
     company_name = Column(String, nullable=False)
     name = Column(String, nullable=False)

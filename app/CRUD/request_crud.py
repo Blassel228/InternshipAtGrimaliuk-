@@ -21,7 +21,7 @@ class RequestCrud(CrudRepository):
             raise HTTPException(status_code=404, detail="Such a company does not exist")
         if company.owner_id == user_id:
             raise HTTPException(status_code=404, detail="You cannot send request to company you own")
-        stmt = select(self.model).where(self.model.sender_id == user_id and self.model.company_id == company.company_id)
+        stmt = select(self.model).where(self.model.sender_id == user_id and self.model.id == company.company_id)
         res = await db.scalar(stmt)
         if res is not None:
             raise HTTPException(status_code=404, detail="You have already sent request to that company")
@@ -32,12 +32,12 @@ class RequestCrud(CrudRepository):
         return request
 
     async def delete(self, id_: int, user_id: int, db: AsyncSession = Depends(get_db)):
-        stmt = select(self.model).where(self.model.request_id == id_)
+        stmt = select(self.model).where(self.model.id == id_)
         res = await db.scalar(stmt)
         if res is None:
             raise HTTPException(status_code=404, detail="The request with such an id does not exist")
         if user_id == res.sender_id:
-            stmt = delete(self.model).where(self.model.request_id == id_)
+            stmt = delete(self.model).where(self.model.id == id_)
             await db.execute(stmt)
             await db.commit()
         else:
@@ -45,7 +45,7 @@ class RequestCrud(CrudRepository):
         return {"id_": id_}
 
     async def accept_request(self, id_: int, user_id: int, db: AsyncSession = Depends(get_db)):
-        stmt = select(self.model).where(self.model.request_id == id_)
+        stmt = select(self.model).where(self.model.id == id_)
         request = await db.scalar(stmt)
         if request is None:
             raise HTTPException(status_code=404, detail="The request with such an id does not exist")
@@ -58,21 +58,21 @@ class RequestCrud(CrudRepository):
         stmt = insert(MemberModel).values(company_id=company.company_id, company_name=company.name,
                                    mail=user.mail, name=user.username)
         await db.execute(stmt)
-        stmt = delete(self.model).where(self.model.request_id == request.request_id)
+        stmt = delete(self.model).where(self.model.id == request.request_id)
         await db.execute(stmt)
         await db.commit()
         return f"{user} was added to {company.name}"
 
     async def reject_request(self, id_: int, user_id: int, db: AsyncSession = Depends(get_db)):
-        stmt = select(self.model).where(self.model.request_id == id_)
+        stmt = select(self.model).where(self.model.id == id_)
         request = await db.scalar(stmt)
         if request is None:
             raise HTTPException(status_code=404, detail="The request with such an id does not exist")
-        stmt = select(CompanyModel).where(CompanyModel.company_id == request.company_id)
+        stmt = select(CompanyModel).where(CompanyModel.id == request.company_id)
         company = await db.scalar(stmt)
         if company.owner_id != user_id:
             raise HTTPException(status_code=404, detail="You do not own the company to reject the request")
-        stmt = delete(self.model).where(self.model.request_id == request.request_id)
+        stmt = delete(self.model).where(self.model.id == request.request_id)
         await db.execute(stmt)
         await db.commit()
         return request
@@ -91,7 +91,7 @@ class RequestCrud(CrudRepository):
             raise HTTPException(status_code=404, detail="You do not have requests because you do not own a company")
         requests = dict()
         for company in companies.all():
-            stmt = select(self.model).where(self.model.company_id == company.company_id)
+            stmt = select(self.model).where(self.model.id == company.company_id)
             res = await db.scalars(stmt)
             requests[f"{company.name}"] = res.all()
         if requests is None:

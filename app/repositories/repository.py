@@ -11,7 +11,7 @@ class CrudRepository:
         return res.all()
 
     async def get_one(self, id_: int, db: AsyncSession):
-        res = await db.scalars(select(self.model).where(self.model.id==id_))
+        res = await db.scalars(select(self.model).where(self.model.id == id_))
         return res.first()
 
     async def add(self, db: AsyncSession, data: BaseModel):
@@ -20,7 +20,7 @@ class CrudRepository:
         if res.rowcount==0:
             return None
         await db.commit()
-        res = await db.scalar(select(self.model).where(self.model.id==data.id))
+        res = await db.scalar(select(self.model).where(self.model.id == data.id))
         return res
 
     async def update(self, id_: int, db: AsyncSession, data: BaseModel):

@@ -20,14 +20,14 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     op.create_table('company',
-    sa.Column('company_id', sa.INTEGER(), autoincrement=True, nullable=False),
+    sa.Column('id', sa.INTEGER(), autoincrement=True, nullable=False),
     sa.Column('owner_id', sa.INTEGER(), autoincrement=False, nullable=False),
     sa.Column('name', sa.VARCHAR(), autoincrement=False, nullable=False),
     sa.Column('description', sa.VARCHAR(), autoincrement=False, nullable=False),
     sa.Column('registration_date', sa.VARCHAR(), autoincrement=False, nullable=True),
     sa.Column('visible', sa.BOOLEAN(), autoincrement=False, nullable=True),
     sa.ForeignKeyConstraint(['owner_id'], ['user.id'], name='company_owner_id_fkey', onupdate='CASCADE', ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('company_id', name='company_pkey'),
+    sa.PrimaryKeyConstraint('id', name='company_pkey'),
     sa.UniqueConstraint('name', name='company_name_key'))
 
 

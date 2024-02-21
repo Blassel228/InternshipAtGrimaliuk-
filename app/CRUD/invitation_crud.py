@@ -34,12 +34,12 @@ class InvitationCrud(CrudRepository):
         return invitation
 
     async def delete(self, id_: int, user_id: int, db: AsyncSession = Depends(get_db)):
-        stmt = select(self.model).where(self.model.invitation_id == id_)
+        stmt = select(self.model).where(self.model.id == id_)
         res = await db.scalar(stmt)
         if res is None:
             raise HTTPException(status_code=404, detail="The invitation with such an id does not exist")
         if user_id == res.owner_id:
-            stmt = delete(self.model).where(self.model.invitation_id == id_)
+            stmt = delete(self.model).where(self.model.id == id_)
             await db.execute(stmt)
             await db.commit()
         else:
@@ -54,7 +54,7 @@ class InvitationCrud(CrudRepository):
         res = db.execute(stmt)
         if res is not None:
             raise HTTPException(status_code=404, detail="You are in a company already")
-        stmt = select(self.model).where(self.model.invitation_id == id_)
+        stmt = select(self.model).where(self.model.id == id_)
         res = await db.scalar(stmt)
         if res is None:
             raise HTTPException(status_code=404, detail="The invitation with such an id does not exist")
@@ -62,24 +62,24 @@ class InvitationCrud(CrudRepository):
             raise HTTPException(status_code=404, detail="You do not have such an invitation to accept")
         stmt = select(UserModel).where(self.model.recipient_id == user_id)
         user = await db.scalar(stmt)
-        stmt = select(CompanyModel).where(self.model.company_id == res.company_id)
+        stmt = select(CompanyModel).where(self.model.id == res.company_id)
         company = await db.scalar(stmt)
         stmt = insert(MemberModel).values(company_id=company.company_id, company_name=company.name,
                                           mail=user.mail, name=user.username)
         await db.execute(stmt)
-        stmt = delete(self.model).where(self.model.invitation_id == res.invitation_id)
+        stmt = delete(self.model).where(self.model.id == res.invitation_id)
         await db.execute(stmt)
         await db.commit()
         return f"{user} was added to {company.name}"
 
     async def reject_invitation(self, id_: int, user_id: int, db: AsyncSession = Depends(get_db)):
-        stmt = select(self.model).where(self.model.invitation_id == id_)
+        stmt = select(self.model).where(self.model.id == id_)
         invitation = await db.scalar(stmt)
         if invitation is None:
             raise HTTPException(status_code=404, detail="The invitation with such an id does not exist")
         if invitation.recipient_id != user_id:
             raise HTTPException(status_code=404, detail="You do not have such a invitation to delete")
-        stmt = delete(self.model).where(self.model.invitation_id == invitation.invitation_id)
+        stmt = delete(self.model).where(self.model.id == invitation.invitation_id)
         await db.execute(stmt)
         await db.commit()
         return invitation

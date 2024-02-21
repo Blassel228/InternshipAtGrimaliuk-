@@ -19,7 +19,7 @@ class UserRepository(CrudRepository):
         stmt = (update(self.model).values(**data_dict).where(self.model.id == id_))
         await db.execute(stmt)
         await db.commit()
-        stmt = select(self.model).where(self.model.id==id_)
+        stmt = select(self.model).where(self.model.id == id_)
         res = await db.scalar(stmt)
         return res
 
