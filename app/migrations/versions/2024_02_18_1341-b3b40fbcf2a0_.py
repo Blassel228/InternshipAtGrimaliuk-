@@ -23,12 +23,11 @@ def upgrade() -> None:
     op.create_table('member',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('company_id', sa.Integer(), nullable=False),
-    sa.Column('mail', sa.String(), nullable=False),
     sa.Column('company_name', sa.String(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('registration_date', sa.String(), nullable=True),
     sa.ForeignKeyConstraint(['company_id'], ['company.id'], onupdate='CASCADE', ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['mail'], ['user.mail'], onupdate='CASCADE', ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['id'], ['user.id'], onupdate='CASCADE', ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
     # ### end Alembic commands ###

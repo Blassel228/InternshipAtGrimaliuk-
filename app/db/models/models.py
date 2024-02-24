@@ -1,10 +1,10 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 import datetime
-from sqlalchemy import MetaData, Column, Integer, String, ForeignKey, Boolean, Table
-from sqlalchemy.orm import declarative_base
+from sqlalchemy import MetaData, Column, Integer, String, ForeignKey, Boolean
+from sqlalchemy.orm import declarative_base, Mapped
 from config import settings
 from sqlalchemy.orm import relationship
-from sqlalchemy.orm import DeclarativeBase
+from typing import List
 
 metadata = MetaData()
 Base = declarative_base(metadata=metadata)
@@ -43,15 +43,11 @@ class RequestModel(Base):
     id = Column(Integer, primary_key=True)
     company_id = Column(Integer, ForeignKey("company.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False)
     sender_id = Column(Integer, ForeignKey("user.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False)
-    company_name = Column(String, nullable=False)
     registration_date = Column(String, default=str(datetime.datetime.now()))
     request_text = Column(String)
 
 class MemberModel(Base):
     __tablename__ = "member"
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer,ForeignKey("user.id", onupdate="CASCADE", ondelete="CASCADE"), primary_key=True, )
     company_id = Column(Integer, ForeignKey("company.id", onupdate="CASCADE", ondelete="CASCADE"),nullable=False)
-    mail = Column(String, ForeignKey("user.mail", onupdate="CASCADE", ondelete="CASCADE"), nullable=False, unique=True)
-    company_name = Column(String, nullable=False)
-    name = Column(String, nullable=False)
     registration_date = Column(String, default=str(datetime.datetime.now()))

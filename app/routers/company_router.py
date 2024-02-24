@@ -26,6 +26,3 @@ async def delete_company(id_: int, current_user = Depends(get_current_user), db:
 async def update_company(id_: int, data: CompanySchemaIn, current_user = Depends(get_current_user),  db: AsyncSession = Depends(get_db)):
     return await company_crud.update(db=db, data=data, user_id=current_user.id, id_=id_)
 
-@company_router.delete("/fire_user")
-async def fire_user(id_: int, data: CompanySchemaIn, current_user = Depends(get_current_user),  db: AsyncSession = Depends(get_db)):
-    return await company_crud.fire_user(db=db, data=data, user_id=current_user.id, id_=id_)

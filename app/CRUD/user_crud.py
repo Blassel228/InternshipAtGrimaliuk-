@@ -7,8 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-
-class UserRepository(CrudRepository):
+class UserCrud(CrudRepository):
     async def update(self, id_: int, db: AsyncSession, data: UserUpdate):
         if data.password is not None:
             data.password = pwd_context.hash(data.password)
@@ -31,4 +30,4 @@ class UserRepository(CrudRepository):
         await db.commit()
         return res
 
-user_repo = UserRepository(UserModel)
+user_crud = UserCrud(UserModel)
