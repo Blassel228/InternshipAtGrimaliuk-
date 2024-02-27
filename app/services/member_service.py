@@ -28,7 +28,7 @@ class MemberService:
             raise HTTPException(status_code=404, detail="Company not found")
         if company.owner_id != user_id:
             raise HTTPException(status_code=403, detail="You do not own company")
-        res = await member_crud.get_one_by_filter(data={"company_id": company_id}, db=db)
+        res = await member_crud.get_all_by_filter(filters={"company_id": company_id}, db=db)
         return res.all()
 
 member_service = MemberService()

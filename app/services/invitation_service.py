@@ -39,7 +39,7 @@ class InvitationService:
         user = await user_crud.get_one(id_=user_id, db=db)
         company = await company_crud.get_one(id_=invitation.company_id, db=db)
         member = await member_crud.add(db=db, data=MemberSchema(company_id=company.id, id=user.id))
-        await invitation_crud.delete(id_=user.id, db=db)
+        await invitation_crud.delete(id_=id_, db=db)
         return member
 
     async def reject_invitation(self, id_: int, user_id: int, db: AsyncSession = Depends(get_db)):
