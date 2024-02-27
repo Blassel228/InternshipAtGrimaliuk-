@@ -1,8 +1,6 @@
 from fastapi import HTTPException
-from sqlalchemy import select, insert
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db.models.models import CompanyModel, MemberModel, InvitationModel
-from app.schemas.schemas import InvitationSchemaCreate, InvitationSchemaCreateIn
+from app.schemas.schemas import InvitationSchemaCreate, InvitationSchemaCreateIn, MemberSchema
 from fastapi import Depends
 from app.utils.deps import get_db
 from app.CRUD.company_crud import company_crud
@@ -11,40 +9,36 @@ from app.CRUD.invitation_crud import invitation_crud
 from app.CRUD.member_crud import member_crud
 class InvitationService:
     async def send_invitation(self, user_id: int, invitation: InvitationSchemaCreateIn, db: AsyncSession = Depends(get_db)):
+        user = await user_crud.get_one(db=db, id_=invitation.recipient_id)
+        if not user:
+            raise HTTPException(status_code=403, detail="Such a user does not exist")
         if invitation.recipient_id == user_id:
-            raise HTTPException(status_code=404, detail="You cannot send invitation to yourself")
-        stmt = select(CompanyModel).where(CompanyModel.owner_id == user_id)
-        company = await db.scalar(stmt)
+            raise HTTPException(status_code=403, detail="You cannot send invitation to yourself")
+        company = await company_crud.get_one_by_filter(db=db, filters={"owner_id": user_id})
         if company is None:
             raise HTTPException(status_code=404, detail="You do not possess any company")
         invitation = InvitationSchemaCreate(owner_id=user_id, company_id=company.id, **invitation.model_dump())
-        stmt = select(CompanyModel).where(CompanyModel.id == invitation.company_id)
-        res = await db.scalar(stmt)
-        if res is not None and res.owner_id == user_id:  # check if company is owned by user that are trying to send invitation
-            stmt = insert(InvitationModel).values(**invitation.model_dump(exclude={"company_name"}))
-            await db.execute(stmt)
-            await db.commit()
+        company = await company_crud.get_one(db=db, id_=invitation.company_id)
+        if company is not None and company.owner_id == user_id:  # check if company is owned by user that are trying to send invitation
+            invitation = await invitation_crud.add(data=invitation.model_dump(exclude={"company_name"}), db=db)
         else:
-            raise HTTPException(status_code=404, detail="You do not own such a company on behalf of which "
+            raise HTTPException(status_code=403, detail="You do not own such a company on behalf of which "
                                                         "you are trying to send the invitation")
         return invitation
 
     async def accept_invitation(self, id_: int, user_id: int, db: AsyncSession = Depends(get_db)):
-        res = await user_crud.get_one(id_=user_id, db=db)
-        stmt = select(MemberModel).where(MemberModel.id == res.id)
-        res = await db.scalar(stmt)
-        if res is not None:
-            raise HTTPException(status_code=404, detail="You are in a company already")
-        res = await invitation_crud.get_one(id_=id_, db=db)
-        if res is None:
-            raise HTTPException(status_code=404, detail="The invitation with such an id does not exist")
-        if res.recipient_id != user_id:
+        user = await user_crud.get_one(id_=user_id, db=db)
+        member = await member_crud.get_one(db=db, id_=user.id)
+        if member is not None:
+            raise HTTPException(status_code=403, detail="You are in a company already")
+        invitation = await invitation_crud.get_one(id_=id_, db=db)
+        if invitation is None:
+            raise HTTPException(status_code=409, detail="The invitation with such an id does not exist")
+        if invitation.recipient_id != user_id:
             raise HTTPException(status_code=404, detail="You do not have such an invitation to accept")
         user = await user_crud.get_one(id_=user_id, db=db)
-        company = await company_crud.get_one(id_=res.company_id, db=db)
-        stmt = insert(MemberModel).values(company_id=company.id, id=user.id)
-        await db.execute(stmt)
-        member = await member_crud.get_one(id_=user.id, db=db)
+        company = await company_crud.get_one(id_=invitation.company_id, db=db)
+        member = await member_crud.add(db=db, data=MemberSchema(company_id=company.id, id=user.id))
         await invitation_crud.delete(id_=user.id, db=db)
         return member
 
@@ -62,10 +56,10 @@ class InvitationService:
         if res is None:
             raise HTTPException(status_code=404, detail="The invitation with such an id does not exist")
         if user_id == res.owner_id:
-            await invitation_crud.delete(id_=id_, db=db)
+            res = await invitation_crud.delete(id_=id_, db=db)
         else:
-            raise HTTPException(status_code=404, detail="You do not possess such a company on behalf of which "
+            raise HTTPException(status_code=403, detail="You do not possess such a company on behalf of which "
                                                         "the invitation was sent")
-        return {"id_": id_}
+        return res
 
 invitation_service = InvitationService()

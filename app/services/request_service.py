@@ -1,7 +1,6 @@
 from fastapi import HTTPException
-from sqlalchemy import select, insert
+from app.schemas.schemas import MemberSchema
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db.models.models import CompanyModel, MemberModel, RequestModel
 from app.schemas.schemas import RequestSchemaCreate, RequestSchemaCreateIn
 from fastapi import Depends
 from app.utils.deps import get_db
@@ -12,19 +11,17 @@ from app.CRUD.member_crud import member_crud
 
 class RequestService:
     async def send_request(self, user_id: int, request: RequestSchemaCreateIn, db: AsyncSession = Depends(get_db)):
-        stmt = select(MemberModel).where(MemberModel.id == user_id)
-        res = await db.scalar(stmt)
+        res = await member_crud.get_one(id_=user_id, db=db)
         if res is not None:
-            raise HTTPException(status_code=404, detail="You are in a company already")
+            raise HTTPException(status_code=403, detail="You are in a company already")
         company = await company_crud.get_one(request.id, db=db)
         if company is None:
             raise HTTPException(status_code=404, detail="Such a company does not exist")
         if company.owner_id == user_id:
-            raise HTTPException(status_code=404, detail="You cannot send request to company you own")
-        stmt = select(RequestModel).where(RequestModel.sender_id == user_id and RequestModel.id == company.id)
-        res = await db.scalar(stmt)
-        if res is not None:
-            raise HTTPException(status_code=404, detail="You have already sent request to that company")
+            raise HTTPException(status_code=403, detail="You cannot send request to company you own")
+        res = await request_crud.get_one_by_filter(db=db, filters={"sender_id": user_id, "company_id": company.id})
+        if res:
+            raise HTTPException(status_code=409, detail="You have already sent request to that company")
         request = RequestSchemaCreate(**request.model_dump(), sender_id=user_id, company_id=company.id)
         await request_crud.add(data=request, db=db)
         return request
@@ -34,14 +31,11 @@ class RequestService:
         if request is None:
             raise HTTPException(status_code=404, detail="The request with such an id does not exist")
         user = await user_crud.get_one(id_=request.sender_id, db=db)
-        stmt = select(CompanyModel).where(CompanyModel.owner_id == user_id)
-        company = await db.scalar(stmt)
+        company = await company_crud.get_one_by_filter(db=db, filters={"owner_id": user_id})
         if company.owner_id != user_id:
-            raise HTTPException(status_code=404, detail="You can not accept the request as you are not the owner")
-        stmt = insert(MemberModel).values(company_id=company.id, id=user.id)
-        await db.execute(stmt)
-        member = await member_crud.get_one(id_=user.id, db=db)
+            raise HTTPException(status_code=403, detail="You can not accept the request as you are not the owner")
         await request_crud.delete(id_=request.id, db=db)
+        member = await member_crud.add(db=db, data=MemberSchema(company_id=company.id, id=user.id))
         return member
 
     async def reject_request(self, id_: int, user_id: int, db: AsyncSession = Depends(get_db)):
@@ -50,7 +44,7 @@ class RequestService:
             raise HTTPException(status_code=404, detail="The request with such an id does not exist")
         company = await company_crud.get_one(id_=request.company_id, db=db)
         if company.owner_id != user_id:
-            raise HTTPException(status_code=404, detail="You do not own the company to reject the request")
+            raise HTTPException(status_code=403, detail="You do not own the company to reject the request")
         await request_crud.delete(id_=request.id, db=db)
         return request
 
@@ -59,9 +53,9 @@ class RequestService:
         if res is None:
             raise HTTPException(status_code=404, detail="The request with such an id does not exist")
         if user_id == res.sender_id:
-            await request_crud.delete(db=db, id_=id_)
+            res = await request_crud.delete(db=db, id_=id_)
         else:
-            raise HTTPException(status_code=404, detail="You did not send request with such an id")
-        return {"id_": id_}
+            raise HTTPException(status_code=403, detail="You did not send request with such an id")
+        return res
 
 request_service = RequestService()

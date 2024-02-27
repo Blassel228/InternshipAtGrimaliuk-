@@ -1,15 +1,9 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 import datetime
 from sqlalchemy import MetaData, Column, Integer, String, ForeignKey, Boolean
-from sqlalchemy.orm import declarative_base, Mapped
+from sqlalchemy.orm import declarative_base
 from config import settings
-from sqlalchemy.orm import relationship
-from typing import List
-
-metadata = MetaData()
-Base = declarative_base(metadata=metadata)
-engine = create_async_engine(f'postgresql+asyncpg://{settings.postgresql_user}:{settings.postgresql_password}@{settings.postgresql_host}:{settings.postgresql_port}/{settings.postgresql_database_name}')
-session = async_sessionmaker(engine)
+from app.db.base import Base
 
 class UserModel(Base):
     __tablename__ = "user"

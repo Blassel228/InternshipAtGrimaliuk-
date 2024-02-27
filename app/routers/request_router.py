@@ -24,7 +24,7 @@ async def accept_request(id_: int, db: AsyncSession = Depends(get_db), current_u
 async def reject_request(id_: int, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_user)):
     return await request_service.reject_request(id_=id_, db=db, user_id=current_user.id)
 
-@request_router.get("/user_get_requests", tags=["user"])
+@request_router.get("/user_get_requests")
 async def user_get_requests(db: AsyncSession = Depends(get_db), current_user = Depends(get_current_user)):
     return await request_crud.user_get_requests(db=db, user_id=current_user.id)
 

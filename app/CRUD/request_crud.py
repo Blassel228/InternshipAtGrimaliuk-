@@ -11,7 +11,7 @@ class RequestCrud(CrudRepository):
         stmt = select(self.model).where(self.model.sender_id == user_id)
         res = await db.scalars(stmt)
         if res is None:
-            raise HTTPException(status_code=404, detail="There is no requests you sent")
+            raise HTTPException(status_code=404, detail="There are no requests you sent")
         return res.all()
 
     async def owner_get_requests(self, user_id: int, db: AsyncSession):

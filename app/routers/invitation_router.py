@@ -20,6 +20,10 @@ async def accept_invitation(id_: int, db: AsyncSession = Depends(get_db),  curre
 async def get_received_invitations(db: AsyncSession = Depends(get_db), current_user = Depends(get_current_user)):
     return await invitation_crud.get_received_invitations(db=db, user_id=current_user.id)
 
+@invitation_router.delete("/delete")
+async def delete(id_: int, db: AsyncSession = Depends(get_db)):
+    return await invitation_crud.delete(db=db, id_=id_)
+
 @invitation_router.get("/get_all")
 async def get_all(db: AsyncSession = Depends(get_db)):
     return await invitation_crud.get_all(db=db)

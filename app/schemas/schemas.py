@@ -69,3 +69,7 @@ class RequestSchemaCreate(BaseModel):
     company_id: int
     sender_id: int
     request_text: str
+
+class MemberSchema(BaseModel):
+    id: int
+    company_id: int

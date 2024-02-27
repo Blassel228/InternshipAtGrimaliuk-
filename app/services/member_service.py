@@ -1,15 +1,12 @@
-from fastapi import HTTPException, status
-from sqlalchemy import delete, select
+from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db.models.models import MemberModel
-from app.CRUD.user_crud import user_crud
 from app.CRUD.member_crud import member_crud
 from app.CRUD.company_crud import company_crud
 class MemberService:
     async def user_resign(self, db: AsyncSession, user_id: int):
         member = await member_crud.get_one(id_=user_id, db=db)
         if member is None:
-            raise HTTPException(status_code=404, detail="You are not a member in any company")
+            raise HTTPException(status_code=403, detail="You are not a member in any company")
         await member_crud.delete(id_=user_id, db=db)
         return member
 
@@ -30,9 +27,8 @@ class MemberService:
         if company is None:
             raise HTTPException(status_code=404, detail="Company not found")
         if company.owner_id != user_id:
-            raise HTTPException(status_code=404, detail="You do not own company")
-        stmt = select(MemberModel).where(MemberModel.company_id == company_id)
-        res = await db.scalars(stmt)
+            raise HTTPException(status_code=403, detail="You do not own company")
+        res = await member_crud.get_one_by_filter(data={"company_id": company_id}, db=db)
         return res.all()
 
 member_service = MemberService()
