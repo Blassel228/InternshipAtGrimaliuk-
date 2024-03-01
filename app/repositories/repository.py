@@ -1,6 +1,7 @@
 from sqlalchemy import insert, update, select, delete
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import HTTPException
 
 class CrudRepository:
     def __init__(self, model):
@@ -11,7 +12,7 @@ class CrudRepository:
         return res.all()
 
     async def get_one(self, id_: int, db: AsyncSession):
-        res = await db.scalars(select(self.model).where(self.model.id==id_))
+        res = await db.scalars(select(self.model).where(self.model.id == id_))
         return res.first()
 
     async def add(self, db: AsyncSession, data: BaseModel):
@@ -20,7 +21,7 @@ class CrudRepository:
         if res.rowcount==0:
             return None
         await db.commit()
-        res = await db.scalar(select(self.model).where(self.model.id==data.id))
+        res = await db.scalar(select(self.model).where(self.model.id == data.id))
         return res
 
     async def update(self, id_: int, db: AsyncSession, data: BaseModel):
@@ -34,9 +35,21 @@ class CrudRepository:
         return res
 
     async def delete(self, id_: int, db: AsyncSession):
+        stmt = select(self.model).where(self.model.id == id_)
+        res = await db.scalar(stmt)
         stmt = delete(self.model).where(self.model.id == id_)
-        res = await db.execute(stmt)
-        if res.rowcount==0:
-            return None
+        deleted = await db.execute(stmt)
+        if deleted.rowcount==0:
+            raise HTTPException(detail="Not Found", status_code=404)
         await db.commit()
-        return {"id": id_}
+        return res
+
+    async def get_one_by_filter(self, db:AsyncSession, filters: dict):
+        query = select(self.model).filter_by(**filters)
+        result = await db.scalar(query)
+        return result
+
+    async def get_all_by_filter(self, db: AsyncSession, filters: dict):
+        query = select(self.model).filter_by(**filters)
+        result = await db.scalars(query)
+        return result

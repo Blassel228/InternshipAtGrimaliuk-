@@ -1,5 +1,4 @@
 from typing import Optional
-from datetime import datetime
 from fastapi import HTTPException
 from pydantic import BaseModel, EmailStr, model_validator
 
@@ -41,6 +40,7 @@ class CompanySchemaIn(BaseModel):
     name: str
     description: Optional[str] = None
     visible: Optional[bool] = True
+
 class CompanySchema(BaseModel):
     id: int
     name: str
@@ -48,3 +48,28 @@ class CompanySchema(BaseModel):
     visible: Optional[bool] = True
     owner_id: int
 
+class InvitationSchemaCreateIn(BaseModel):
+    id: int
+    recipient_id: int
+    invitation_text: str
+
+class InvitationSchemaCreate(BaseModel):
+    id: int
+    recipient_id: int
+    owner_id: int
+    company_id: int
+    invitation_text: str
+
+class RequestSchemaCreateIn(BaseModel):
+    id: int
+    request_text: str
+
+class RequestSchemaCreate(BaseModel):
+    id: int
+    company_id: int
+    sender_id: int
+    request_text: str
+
+class MemberSchema(BaseModel):
+    id: int
+    company_id: int

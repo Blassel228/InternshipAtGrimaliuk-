@@ -7,8 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-
-class UserRepository(CrudRepository):
+class UserCrud(CrudRepository):
     async def update(self, id_: int, db: AsyncSession, data: UserUpdate):
         if data.password is not None:
             data.password = pwd_context.hash(data.password)
@@ -19,17 +18,16 @@ class UserRepository(CrudRepository):
         stmt = (update(self.model).values(**data_dict).where(self.model.id == id_))
         await db.execute(stmt)
         await db.commit()
-        stmt = select(self.model).where(self.model.id==id_)
+        stmt = select(self.model).where(self.model.id == id_)
         res = await db.scalar(stmt)
         return res
 
-    async def delete(self, db: AsyncSession, id_: int):
-        stmt = delete(self.model).where(self.model.id == id_)
+    async def delete(self, db: AsyncSession, user_id: int):
+        stmt = delete(self.model).where(self.model.id == user_id)
         res = await db.execute(stmt)
         if res.rowcount == 0:
             return None
         await db.commit()
         return res
 
-
-user_repo = UserRepository(UserModel)
+user_crud = UserCrud(UserModel)

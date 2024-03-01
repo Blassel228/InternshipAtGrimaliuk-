@@ -17,17 +17,17 @@ class AdminRepository(CrudRepository):
         if res.rowcount==0:
             return None
         await db.commit()
-        res = await db.scalars(select(self.model).where(self.model.id==data["id"]))
+        res = await db.scalars(select(self.model).where(self.model.id == data["id"]))
         return res.first()
 
     async def update(self, id_: int, db: AsyncSession, data: User):
         data = data.model_dump()
         stmt = (update(self.model).values(hashed_password=pwd_context.hash(data.pop("password")),**data).
-                    where(self.model.id==id_))
+                where(self.model.id == id_))
         res = await db.execute(stmt)
         if res.rowcount==0:
             return None
         await db.commit()
         return data
 
-admin_repo = AdminRepository(UserModel)
+admin_crud = AdminRepository(UserModel)
