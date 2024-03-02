@@ -40,7 +40,7 @@ class CrudRepository:
         stmt = delete(self.model).where(self.model.id == id_)
         deleted = await db.execute(stmt)
         if deleted.rowcount==0:
-            raise HTTPException(detail="Not Found", status_code=404)
+            return None
         await db.commit()
         return res
 
