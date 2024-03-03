@@ -17,8 +17,9 @@ class UserCrud(CrudRepository):
         res = await db.execute(stmt)
         if res.rowcount==0:
             return None
+        res = await self.get_one(id_=id_, db=db)
         await db.commit()
-        return data
+        return res
 
     async def add(self, db: AsyncSession, data: User):
         data = data.model_dump()
@@ -36,7 +37,7 @@ class UserCrud(CrudRepository):
         data_dict = data.model_dump(exclude={"id", "update_by"}, exclude_none=True)
         data_dict["hashed_password"] = data_dict.pop("password")
         if not data_dict:
-            raise HTTPException(detail="Data is not full", status_code=403)
+            raise HTTPException(detail="Data is not full-filled", status_code=403)
         stmt = (update(self.model).values(**data_dict).where(self.model.id == id_))
         await db.execute(stmt)
         await db.commit()

@@ -3,8 +3,8 @@ from app.CRUD.user_crud import user_crud
 from app.schemas.schemas import UserUpdate
 from fastapi import HTTPException
 class UserService:
-    async def update(self, db: Session, data: UserUpdate):
-        user = await user_crud.update(id_=data.id, data=data, db=db)
+    async def self_update(self, db: Session, data: UserUpdate):
+        user = await user_crud.self_update(id_=data.id, data=data, db=db)
         if user is None:
             raise HTTPException(status_code=404, detail="The user is not valid")
         return user

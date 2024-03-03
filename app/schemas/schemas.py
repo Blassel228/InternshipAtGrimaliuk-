@@ -8,7 +8,6 @@ class User(BaseModel):
     username: str
     password: str
     mail: EmailStr
-    role: int
 
 class UserUpdateIn(BaseModel):
     id: int

@@ -30,7 +30,6 @@ async def login_get_token(form_data: Annotated[OAuth2PasswordRequestForm, Depend
     # acrually it will return {"username":  "zero","id": 443, "exp": 1705839660}
     return {"access_token": access_token, "token_type": "bearer"}
 
-
 async def authenticate_user(password: str, username: str, db: AsyncSession):
     res = await db.execute(select(UserModel).where(UserModel.username == username))
     user = res.scalar()
@@ -39,7 +38,6 @@ async def authenticate_user(password: str, username: str, db: AsyncSession):
     if not pwd_context.verify(password, user.hashed_password):
         return False
     return user
-
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
