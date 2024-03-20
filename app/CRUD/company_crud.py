@@ -5,7 +5,6 @@ from app.db.models.models import CompanyModel
 from app.repositories.repository import CrudRepository
 from app.schemas.schemas import CompanySchemaIn, CompanySchema
 
-
 class CompanyCrud(CrudRepository):
 
     async def get_all_visible(self, db: AsyncSession):

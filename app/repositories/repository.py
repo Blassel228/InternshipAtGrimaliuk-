@@ -37,10 +37,10 @@ class CrudRepository:
     async def delete(self, id_: int, db: AsyncSession):
         stmt = select(self.model).where(self.model.id == id_)
         res = await db.scalar(stmt)
+        if res is None:
+            return None
         stmt = delete(self.model).where(self.model.id == id_)
-        deleted = await db.execute(stmt)
-        if deleted.rowcount==0:
-            raise HTTPException(detail="Not Found", status_code=404)
+        await db.execute(stmt)
         await db.commit()
         return res
 

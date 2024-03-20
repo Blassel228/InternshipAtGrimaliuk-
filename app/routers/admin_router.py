@@ -1,27 +1,19 @@
-from fastapi import APIRouter, Depends
 from app.utils.deps import get_db
-from app.schemas.schemas import User
-from app.services.admin_service import admin_service
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.CRUD.admin_crud import admin_crud
+from fastapi import APIRouter, Depends
+from app.utils.deps import get_current_user
 
 admin_router = APIRouter(tags=["admin"], prefix="/admin")
 
-@admin_router.put("/")
-async def update(db: AsyncSession = Depends(get_db), data: User = None, id_: int = None):
-    return await admin_service.update(id_=id_, db=db, data=data)
-
-@admin_router.delete("/")
-async def delete(db: AsyncSession = Depends(get_db), id_: int = None):
-    return await admin_service.delete(id_=id_, db=db)
-
-@admin_router.get("{id}")
-async def get(id_: int = None, db: AsyncSession = Depends(get_db)):
-    return await admin_service.get_one(id_=id_, db=db)
-
-@admin_router.post("/")
-async def create(data: User, db: AsyncSession = Depends(get_db)):
-    return await admin_service.add(db=db, data=data)
-@admin_router.get("/")
+@admin_router.get("/get_all")
 async def get_all(db: AsyncSession = Depends(get_db)):
-    return await admin_service.get_all(db=db)
+    return await admin_crud.get_all(db=db)
 
+@admin_router.post("/add")
+async def add(id_: int, company_id: int, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_user)):
+    return await admin_crud.add(db=db, id_=id_, user_id=current_user.id, company_id=company_id)
+
+@admin_router.delete("/delete")
+async def delete(id_: int, company_id: int, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_user)):
+    return await admin_crud.delete(db=db, id_=id_, user_id=current_user.id, company_id=company_id)

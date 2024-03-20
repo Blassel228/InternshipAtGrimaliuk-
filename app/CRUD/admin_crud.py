@@ -1,33 +1,46 @@
-from app.db.models.models import UserModel
-from sqlalchemy.orm import Session
-from passlib.context import CryptContext
-from sqlalchemy import insert, update, select
+from app.db.models.models import AdminModel
 from app.repositories.repository import CrudRepository
-from app.schemas.schemas import User
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.CRUD.member_crud import member_crud
+from app.CRUD.company_crud import company_crud
+from fastapi import HTTPException
+from sqlalchemy import insert, delete, select
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-class AdminRepository(CrudRepository):
-
-    async def add(self, db: AsyncSession, data: User):
-        data = data.model_dump()
-        stmt = insert(self.model).values(hashed_password=pwd_context.hash(data.pop("password")), **data)
-        res = await db.execute(stmt)
-        if res.rowcount==0:
-            return None
+class AdminCrud(CrudRepository):
+    async def add(self, id_: int, company_id: int, user_id: int, db: AsyncSession):
+        company = await company_crud.get_one_by_filter(db=db, filters={"id": company_id})
+        if company is None:
+            raise HTTPException(status_code=404, detail="There is no such a company")
+        if company.owner_id != user_id:
+            raise HTTPException(status_code=403, detail="You do not own such a company")
+        member = await member_crud.get_one(db=db, id_=id_)
+        if member is None:
+            raise HTTPException(status_code=404, detail="There is no such a member")
+        if member.company_id != company.id:
+            raise HTTPException(status_code=403, detail="This user is not in your company")
+        stmt = insert(self.model).values(id=id_)
+        await db.execute(stmt)
         await db.commit()
-        res = await db.scalars(select(self.model).where(self.model.id == data["id"]))
-        return res.first()
+        admin = await admin_crud.get_one(db=db, id_=id_)
+        if admin is None:
+            raise HTTPException(status_code=500, detail="Admin was not added for some reason")
+        return admin
 
-    async def update(self, id_: int, db: AsyncSession, data: User):
-        data = data.model_dump()
-        stmt = (update(self.model).values(hashed_password=pwd_context.hash(data.pop("password")),**data).
-                where(self.model.id == id_))
-        res = await db.execute(stmt)
-        if res.rowcount==0:
-            return None
+    async def delete(self, id_: int, company_id: int, user_id: int, db: AsyncSession):
+        company = await company_crud.get_one_by_filter(db=db, filters={"id": company_id})
+        if company is None:
+            raise HTTPException(status_code=404, detail="There is no such a company")
+        if company.owner_id != user_id:
+            raise HTTPException(status_code=403, detail="You do not own such a company")
+        member = await member_crud.get_one(db=db, id_=id_)
+        admin = await self.get_one(db=db, id_=id_)
+        if admin is None:
+            raise HTTPException(status_code=404, detail="There is no such an admin")
+        if member.company_id != company.id:
+            raise HTTPException(status_code=403, detail="This admin is not in your company")
+        stmt = delete(self.model).where(self.model.id == id_)
+        await db.execute(stmt)
         await db.commit()
-        return data
+        return admin
 
-admin_crud = AdminRepository(UserModel)
+admin_crud = AdminCrud(AdminModel)

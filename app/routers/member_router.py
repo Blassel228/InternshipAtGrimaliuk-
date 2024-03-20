@@ -1,4 +1,3 @@
-from fastapi import Depends
 from app.utils.deps import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.utils.deps import get_current_user

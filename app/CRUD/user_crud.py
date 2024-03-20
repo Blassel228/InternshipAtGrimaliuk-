@@ -1,33 +1,40 @@
 from app.db.models.models import UserModel
-from passlib.context import CryptContext
-from sqlalchemy import update, delete, select
-from app.schemas.schemas import UserUpdate
+from sqlalchemy import update, select, insert
 from app.repositories.repository import CrudRepository
 from sqlalchemy.ext.asyncio import AsyncSession
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+from app.schemas.schemas import User, UserUpdate
+from app.core.autho import pwd_context
 
 class UserCrud(CrudRepository):
-    async def update(self, id_: int, db: AsyncSession, data: UserUpdate):
-        if data.password is not None:
-            data.password = pwd_context.hash(data.password)
-        data_dict = data.model_dump(exclude={"id", "update_by"}, exclude_none=True)
-        data_dict["hashed_password"] = data_dict.pop("password")
-        if not data_dict:
+    async def update(self, id_: int, db: AsyncSession, data: User):
+        data = data.model_dump()
+        stmt = (update(self.model).values(hashed_password=pwd_context.hash(data.pop("password")),**data).
+                where(self.model.id == id_))
+        res = await db.execute(stmt)
+        if res.rowcount==0:
             return None
-        stmt = (update(self.model).values(**data_dict).where(self.model.id == id_))
-        await db.execute(stmt)
+        res = await self.get_one(id_=id_, db=db)
+        await db.commit()
+        return res
+
+    async def self_update(self, id_: int, db: AsyncSession, data: dict):
+        stmt = update(self.model).values(**data).where(self.model.id == id_)
+        res = await db.execute(stmt)
+        if res.rowcount == 0:
+            return None
         await db.commit()
         stmt = select(self.model).where(self.model.id == id_)
         res = await db.scalar(stmt)
         return res
 
-    async def delete(self, db: AsyncSession, user_id: int):
-        stmt = delete(self.model).where(self.model.id == user_id)
+    async def add(self, db: AsyncSession, data: User):
+        data = data.model_dump()
+        stmt = insert(self.model).values(hashed_password=pwd_context.hash(data.pop("password")), **data)
         res = await db.execute(stmt)
         if res.rowcount == 0:
             return None
         await db.commit()
-        return res
+        res = await db.scalars(select(self.model).where(self.model.id == data["id"]))
+        return res.first()
 
 user_crud = UserCrud(UserModel)
