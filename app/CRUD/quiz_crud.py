@@ -66,6 +66,9 @@ class QuizCrud(CrudRepository):
         return quiz
 
     async def update(self, id_: int, db: AsyncSession, data: QuizCreate, user_id: int):
+
+        if len(data.questions) < 2:
+            raise HTTPException(detail="There must be two or more questions", status_code=403)
         quiz = await self.get_one(id_=id_, db=db)
         if quiz is None:
             raise HTTPException(detail="Quiz not found", status_code=404)
@@ -88,7 +91,8 @@ class QuizCrud(CrudRepository):
             await option_crud.delete_all_by_filters({"question_id": question.id}, db=db)
 
         for question_data in data.questions:
-
+            if len(question_data.options) < 2:
+                raise HTTPException(detail="There must be two or more options for every question", status_code=403)
             db_question = QuestionModel(
                 text=question_data.text,
                 quiz_id=quiz.id
