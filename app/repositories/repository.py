@@ -52,4 +52,14 @@ class CrudRepository:
     async def get_all_by_filter(self, db: AsyncSession, filters: dict):
         query = select(self.model).filter_by(**filters)
         result = await db.scalars(query)
+        if result is None:
+            raise HTTPException(status_code=404, detail="Not found")
+        return result
+
+    async def delete_all_by_filters(self, db: AsyncSession, filters: dict):
+        result = await self.get_all_by_filter(filters=filters, db=db)
+        if result is None:
+            raise HTTPException(detail="Not found", status_code=404)
+        query = delete(self.model).filter_by(**filters)
+        await db.execute(query)
         return result
