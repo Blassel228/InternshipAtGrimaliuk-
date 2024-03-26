@@ -8,8 +8,8 @@ from app.utils.deps import get_current_user
 quiz_router = APIRouter(tags=["quiz"])
 
 @quiz_router.post("/create")
-async def create_quiz(quiz: QuizCreate, db: AsyncSession = Depends(get_db)):
-    return await quiz_crud.create(db=db, quiz=quiz)
+async def create_quiz(quiz: QuizCreate, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_user)):
+    return await quiz_crud.create(db=db, quiz=quiz, user_id=current_user.id)
 
 @quiz_router.put("/update")
 async def update_quiz(id_:int, data: QuizCreate, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_user)):

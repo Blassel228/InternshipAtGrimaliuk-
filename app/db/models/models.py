@@ -64,11 +64,6 @@ class QuizModel(Base):
     questions = relationship("QuestionModel", back_populates="quizzes", cascade="all, delete-orphan")
     registration_date = Column(String, default=str(datetime.datetime.now()))
 
-    def __init__(self, name: str, description: str, company_id: int):
-        self.name = name
-        self.description = description
-        self.company_id = company_id
-
 class QuestionModel(Base):
     __tablename__ = 'question'
     id = Column(Integer, primary_key=True)
@@ -77,10 +72,6 @@ class QuestionModel(Base):
     options = relationship("OptionModel", back_populates="question", cascade="all, delete-orphan")
     quizzes = relationship("QuizModel", back_populates="questions")
 
-    def __init__(self, text: str, quiz_id: int):
-        self.text = text
-        self.quiz_id = quiz_id
-
 class OptionModel(Base):
     __tablename__ = 'option'
     id = Column(Integer, primary_key=True)
@@ -88,8 +79,3 @@ class OptionModel(Base):
     is_correct = Column(Boolean, nullable=False, default=False)
     question_id = Column(Integer, ForeignKey('question.id',onupdate="CASCADE", ondelete="CASCADE"), nullable=False)
     question = relationship("QuestionModel", back_populates="options")
-
-    def __init__(self, text: str, is_correct: bool, question_id: int):
-        self.text = text
-        self.is_correct = is_correct
-        self.question_id = question_id

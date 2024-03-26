@@ -11,7 +11,16 @@ from app.CRUD.question_crud import question_crud
 from app.CRUD.option_crud import option_crud
 
 class QuizCrud(CrudRepository):
-    async def create(self, db: AsyncSession, quiz: QuizCreate):
+    async def create(self, db: AsyncSession, quiz: QuizCreate, user_id: int):
+        company = await company_crud.get_one(id_=quiz.company_id, db=db)
+        if company is None:
+            raise HTTPException(detail="Company not found", status_code=404)
+
+        if user_id != company.owner_id:
+            admin = await admin_crud.get_one(id_=user_id, db=db)
+            if admin is None or admin.company_id != company.id:
+                raise HTTPException(detail="You cannot create a quiz for this company", status_code=403)
+
         db_quiz = QuizModel(
             name=quiz.name,
             description=quiz.description,
@@ -80,7 +89,7 @@ class QuizCrud(CrudRepository):
         if user_id != company.owner_id:
             admin = await admin_crud.get_one(id_=user_id, db=db)
             if admin is None or admin.company_id != company.id:
-                raise HTTPException(detail="You are not authorized to update this quiz", status_code=403)
+                raise HTTPException(detail="You cannot update this quiz", status_code=403)
 
         quiz.name = data.name
         quiz.description = data.description
