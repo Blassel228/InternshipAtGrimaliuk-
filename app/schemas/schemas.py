@@ -1,7 +1,7 @@
 from typing import Optional
 from fastapi import HTTPException
 from pydantic import BaseModel, EmailStr, model_validator
-
+from typing import List
 
 class User(BaseModel):
     id: int
@@ -72,3 +72,17 @@ class RequestSchemaCreate(BaseModel):
 class MemberSchema(BaseModel):
     id: int
     company_id: int
+
+class OptionCreate(BaseModel):
+    text: str
+    is_correct: bool
+
+class QuestionCreate(BaseModel):
+    text: str
+    options: List[OptionCreate]
+
+class QuizCreate(BaseModel):
+    company_id: int
+    name: str
+    description: str
+    questions: List[QuestionCreate]
